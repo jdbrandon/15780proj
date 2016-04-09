@@ -1,14 +1,10 @@
 $(function(){
-  /*$("#app").on("click", ".message-text", function(obj){
-    console.log(this.textContent)
-  });
-  */
   setTimeout(scrape, 5000)
 });
 
-/*  Simply prints yaks on the current page, replies, 
-    and images are not taken into acount. Score and 
-    Text are available
+/*  Simply prints yaks on the current page, images are 
+    not taken into acount yet. Score text time and 
+    replies are parsed and loged to the console as json
 */
 function scrape(){
   obj = $(".message-container")
@@ -22,9 +18,9 @@ function scrape(){
     text = $(m).find(".message-text").text()
     replies = $(m).find(".comment-count")[0].children[1]
     if(replies.children.length < 3)
-      replies = 0
+      replies = 0 //no replies yet
     else
-      replies = replies.children[2].children[1].innerText
+      replies = replies.children[2].children[1].innerText //traverse the html tree!
     timeInfo = $(m).find(".message-footer-item")[0].children[0].text
     console.log("{" + "'replies': " + replies +
                 ", 'score': " + score + 
