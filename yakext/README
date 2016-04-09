@@ -1,0 +1,3 @@
+All the work is done in main.js right now which is configured to run 5 seconds
+after yikyak.com loads (delay to account for dynamically rendered content).
+If the user isn't logged in to yik yak behavior is undefined.
