@@ -108,6 +108,7 @@ class RNN:
 
 #train the model and print out a sentence
 (Xtrain, Ytrain, i2t, t2i) = createDataset(sys.argv[1])
-model = RNN(len(i2t),activ_size=200)
+model = RNN(len(i2t),activ_size=100)
+print "Vocab size: "+str(len(i2t))
 model.rnn_sgd(Xtrain,Ytrain)
 print gen_yak(t2i,i2t,model)
