@@ -23,11 +23,6 @@ function scrape(){
     else
       replies = replies.children[2].children[1].innerText //traverse the html tree!
     timeInfo = $(m).find(".message-footer-item")[0].children[0].text
-    console.log("{ 'id': " + id +  
-                ", 'replies': " + replies +
-                ", 'score': " + score + 
-                ", 'text': " + text + 
-                ", 'time': " + timeInfo +
-                " }")
+    console.log(id + "," + replies + "," + score + "," + text + "," + timeInfo)
   }
 }
