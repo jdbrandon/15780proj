@@ -14,6 +14,7 @@ function scrape(){
       continue
     //score = m.children[1].innerText.trim()
     //text = m.children[2].innerText
+    id = $(m).attr("data-reactid")
     score = $(m).find(".likes").text().trim()
     text = $(m).find(".message-text").text()
     replies = $(m).find(".comment-count")[0].children[1]
@@ -22,10 +23,6 @@ function scrape(){
     else
       replies = replies.children[2].children[1].innerText //traverse the html tree!
     timeInfo = $(m).find(".message-footer-item")[0].children[0].text
-    console.log("{" + "'replies': " + replies +
-                ", 'score': " + score + 
-                ", 'text': " + text + 
-                ", 'time': " + timeInfo +
-                "}")
+    console.log(id + ":::" + replies + ":::" + score + ":::" + text + ":::" + timeInfo + "\r\n")
   }
 }
