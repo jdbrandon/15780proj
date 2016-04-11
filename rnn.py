@@ -1,8 +1,6 @@
 import numpy as np
-import itertools,sys,nltk
-from nltk.tokenize import TweetTokenizer
+import itertools,sys
 
-MAX_VOCAB_SIZE = 3000
 START_TOKEN = "START_TOKEN"
 END_TOKEN = "END_TOKEN"
 UNKNOWN_TOKEN = "UNKNOWN_TOKEN"
@@ -10,34 +8,6 @@ UNKNOWN_TOKEN = "UNKNOWN_TOKEN"
 def error(y_hat,y):
     return float(np.sum(np.argmax(y_hat,axis=1) != 
                         np.argmax(y,axis=1)))/y.shape[0]
-
-def createDataset(filename):
-    yaks = []
-    tokenizer = TweetTokenizer()
-    ids = set()
-    for line in open(filename).readlines():
-        stuff = line.split(":::")
-        id = stuff[0]
-        if len(stuff) > 3 and id not in ids:
-            sentence = stuff[3]
-            ids.add(id)
-            tokens = [START_TOKEN]
-            tokens.extend(tokenizer.tokenize(sentence.lower()))
-            tokens.append(END_TOKEN)
-            yaks.append(tokens)
-    token_frequency = nltk.FreqDist(itertools.chain(*yaks))
-    vocab = token_frequency.most_common(MAX_VOCAB_SIZE-1)
-    i2t = [token[0] for token in vocab]
-    i2t.append(UNKNOWN_TOKEN)
-    t2i = dict()
-    for i,t in enumerate(i2t):
-        t2i[t] = i
-    
-    yaks = [[t if t in t2i else UNKNOWN_TOKEN for t in yak] for yak in yaks]
-    
-    Xtrain = np.asarray([[t2i[token] for token in yak[:-1]] for yak in yaks])
-    Ytrain = np.asarray([[t2i[token] for token in yak[1:]] for yak in yaks])
-    return (Xtrain, Ytrain, i2t, t2i)
 
 def gen_yak(t2i, i2t, model):
     yak = [t2i[START_TOKEN]]
@@ -56,17 +26,26 @@ softmax = lambda x : np.divide(np.exp(x - np.max(x)),np.sum(np.exp(x - np.max(x)
 #code written with extensive help from 
 #http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-2-implementing-a-language-model-rnn-with-python-numpy-and-theano/
 class RNN:
-    def __init__(self, vocab_size, activ_size=100, bptt_max=5):
-        self.vocab_size = vocab_size
-        self.activ_size = activ_size
-        self.bptt_max = bptt_max
-        np.random.seed(0)
-        self.U = 0.1*np.random.randn(self.activ_size,self.vocab_size)
-        self.V = 0.1*np.random.randn(self.vocab_size,self.activ_size)
-        self.W = 0.1*np.random.randn(self.activ_size,self.activ_size)
-        #self.U = np.random.uniform(-np.sqrt(1.0/vocab_size),np.sqrt(1.0/vocab_size),(self.activ_size,self.vocab_size))
-        #self.V = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.vocab_size,self.activ_size))
-        #self.W = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.activ_size,self.activ_size))
+    def __init__(self, vocab_size = -1, activ_size=100, bptt_max=5, U=None, V=None, W=None):
+        if(U is None or V is None or W is None):
+            self.vocab_size = vocab_size
+            self.activ_size = activ_size
+            self.bptt_max = bptt_max
+            np.random.seed(0)
+            self.U = 0.1*np.random.randn(self.activ_size,self.vocab_size)
+            self.V = 0.1*np.random.randn(self.vocab_size,self.activ_size)
+            self.W = 0.1*np.random.randn(self.activ_size,self.activ_size)
+            #self.U = np.random.uniform(-np.sqrt(1.0/vocab_size),np.sqrt(1.0/vocab_size),(self.activ_size,self.vocab_size))
+            #self.V = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.vocab_size,self.activ_size))
+            #self.W = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.activ_size,self.activ_size))
+        else:
+            self.vocab_size = U.shape[1]
+            self.activ_size = U.shape[0]
+            self.bptt_max = bptt_max
+            np.random.seed(0)
+            self.U = U
+            self.V = V
+            self.W = W
 
     def rnn_fprop(self, x):
         activ = np.zeros((len(x)+1,self.activ_size))
@@ -110,10 +89,4 @@ class RNN:
                 self.U -= alpha*dU
                 self.V -= alpha*dV
                 self.W -= alpha*dW
-
-#train the model and print out a sentence
-(Xtrain, Ytrain, i2t, t2i) = createDataset(sys.argv[1])
-model = RNN(len(i2t),activ_size=200)
-print "Vocab size: "+str(len(i2t))
-model.rnn_sgd(Xtrain,Ytrain,epochs=30)
-print gen_yak(t2i,i2t,model)
+        return (self.U,self.V,self.W)
