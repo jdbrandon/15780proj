@@ -8,10 +8,12 @@ def createDataset(filename, MAX_VOCAB_SIZE):
     yaks = []
     tokenizer = TweetTokenizer()
     ids = set()
+    numyaks = 0
     for line in open(filename).readlines():
         stuff = line.split(":::")
         id = stuff[0]
         if len(stuff) > 3 and id not in ids:
+            numyaks+=1
             sentence = stuff[3]
             ids.add(id)
             tokens = [START_TOKEN]
@@ -30,6 +32,7 @@ def createDataset(filename, MAX_VOCAB_SIZE):
     
     Xtrain = np.asarray([[t2i[token] for token in yak[:-1]] for yak in yaks])
     Ytrain = np.asarray([[t2i[token] for token in yak[1:]] for yak in yaks])
+    print "Num unique Yaks: "+str(numyaks)
     return (Xtrain, Ytrain, i2t, t2i)
 
 #train the model and print out a sentence
