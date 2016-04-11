@@ -16,7 +16,8 @@
     "https://www.yikyak.com/",
     "http://www.yikyak.com/",
     "https://yikyak.com/",
-    "http://yikyak.com/"
+    "http://yikyak.com/",
+    "*://localhost/"
   ],
   "content_scripts": [
     {
