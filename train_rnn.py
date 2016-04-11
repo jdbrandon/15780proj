@@ -48,4 +48,4 @@ if options.trainingfile == None:
 model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
 print "Vocab size: "+str(len(i2t))
 U,V,W = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs)
-np.savez(options.modeloutput,U=U,V=V,W=W,i2t=i2t,t2i=t2i)
+np.savez_compressed(options.modeloutput,U=U,V=V,W=W,i2t=i2t,t2i=t2i)

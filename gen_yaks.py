@@ -10,7 +10,7 @@ def gen_yak(t2i, i2t, model):
         while nexttoken == t2i[UNKNOWN_TOKEN]:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
         yak.append(nexttoken)
-    return " ".join(i2t[i] for i in yak[1:-1])
+    return " ".join(i2t[i].encode(locale.getpreferredencoding(),'xmlcharrefreplace') for i in yak[1:-1])
 
 #train the model and print out a sentence
 if len(sys.argv) < 2 or len(sys.argv) > 3:
@@ -18,10 +18,10 @@ if len(sys.argv) < 2 or len(sys.argv) > 3:
     quit()
 weights = np.load(sys.argv[1])
 model = RNN(U=weights["U"], V=weights["V"], W=weights["W"])
-sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+#sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 if len(sys.argv) == 3:
     for i in xrange(int(sys.argv[2])):
-        print gen_yak(weights["t2i"][()],weights["i2t"],model)
+        print gen_yak(weights["t2i"][()],weights["i2t"],model)+"\n----------------"
 else:
     for i in xrange(5):
-        print gen_yak(weights["t2i"][()],weights["i2t"],model)
+        print gen_yak(weights["t2i"][()],weights["i2t"],model)+"\n----------------"
