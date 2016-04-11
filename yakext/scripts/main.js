@@ -24,7 +24,6 @@ function scrape(){
     else
       replies = replies.children[2].children[1].innerText //traverse the html tree
     
-    //console.log(id + ":::" + replies + ":::" + score + ":::" + text + ":::" + timeInfo + "\r\n")
     sendData(id + ":::" + replies + ":::" + score + ":::" + text + ":::" + timeInfo + "\r\n")
   }
   setTimeout(refreshPage, 1000 * 60 * 5) //refresh page every 5 min
@@ -35,18 +34,10 @@ function refreshPage(){
 }
 
 function sendData(data){
-  //ws = new WebSocket("wss:localhost:9999");
   var req = new XMLHttpRequest()
-  var url = "https://localhost:9999"
+  var url = "http://localhost:9999"
 
   req.open("POST", url, true)
-  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   console.log(data)
-  req.send("data")
-
-  /*ws.onopen = function(){
-    console.log(data)
-    ws.send(data)
-    ws.close()
-  }*/
+  req.send(data)
 }

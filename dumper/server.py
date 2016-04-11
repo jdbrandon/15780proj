@@ -1,22 +1,4 @@
-'''from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
-
-class SimpleEcho(WebSocket):
-
-    def handleMessage(self):
-        # echo message back to client
-        print self.data
-
-    def handleConnected(self):
-        print self.address, 'connected'
-
-    def handleClose(self):
-        print self.address, 'closed'
-
-server = SimpleWebSocketServer('localhost', 9999, SimpleEcho)
-server.serveforever()
-'''
-import BaseHTTPServer, SimpleHTTPServer, SocketServer
-import ssl
+import SocketServer, urllib, httplib, re
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
     """
@@ -29,11 +11,19 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024)
-        print "{} wrote:".format(self.client_address[0])
-        print len(self.data)
-        print self.data
+        self.data = self.request.recv(1024).strip()
+        http = urllib.unquote(self.data)
+        if "q=0.8\r\n\r\n" in http:
+            http = http[(http.index("q=0.8\r\n\r\n")+9):]
+            print http
+        self.request.sendall("OK")
 
-httpd = BaseHTTPServer.HTTPServer(('localhost', 9999), MyTCPHandler)
-httpd.socket = ssl.wrap_socket (httpd.socket, certfile='cert.pem', server_side=True)
-httpd.serve_forever()
+if __name__ == "__main__":
+    HOST, PORT = "localhost", 9999
+
+    # Create the server, binding to localhost on port 9999
+    server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
+
+    # Activate the server; this will keep running until you
+    # interrupt the program with Ctrl-C
+    server.serve_forever()
