@@ -56,7 +56,7 @@ softmax = lambda x : np.divide(np.exp(x - np.max(x)),np.sum(np.exp(x - np.max(x)
 #code written with extensive help from 
 #http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-2-implementing-a-language-model-rnn-with-python-numpy-and-theano/
 class RNN:
-    def __init__(self, vocab_size, activ_size=100, bptt_max=4):
+    def __init__(self, vocab_size, activ_size=100, bptt_max=5):
         self.vocab_size = vocab_size
         self.activ_size = activ_size
         self.bptt_max = bptt_max
@@ -64,6 +64,9 @@ class RNN:
         self.U = 0.1*np.random.randn(self.activ_size,self.vocab_size)
         self.V = 0.1*np.random.randn(self.vocab_size,self.activ_size)
         self.W = 0.1*np.random.randn(self.activ_size,self.activ_size)
+        #self.U = np.random.uniform(-np.sqrt(1.0/vocab_size),np.sqrt(1.0/vocab_size),(self.activ_size,self.vocab_size))
+        #self.V = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.vocab_size,self.activ_size))
+        #self.W = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.activ_size,self.activ_size))
 
     def rnn_fprop(self, x):
         activ = np.zeros((len(x)+1,self.activ_size))
@@ -89,8 +92,8 @@ class RNN:
         dU, dV, dW = np.zeros(self.U.shape),np.zeros(self.V.shape),np.zeros(self.W.shape)
         d_output = output
         d_output[xrange(len(y)),y] -= 1
-        for i in range(len(y))[::-1]:
-            dV += np.outer(d_output[i], activ[i].transpose())
+        for i in xrange(len(y)-1,-1,-1):
+            dV += np.outer(d_output[i], activ[i])
             d_t = self.V.transpose().dot(d_output[i]) * (1 - (activ[i]**2))
             for t in xrange(i,max(0, i-self.bptt_max)-1,-1):
                 dW += np.outer(d_t, activ[t-1])
@@ -98,8 +101,10 @@ class RNN:
                 d_t = self.W.transpose().dot(d_t) * (1 - activ[t-1]**2)
         return (dU,dV,dW)
     
-    def rnn_sgd(self, X, y, epochs=10, alpha=0.01):
+    def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5):
         for t in xrange(epochs):
+            if t % loss_epoch == 0:
+                print "Loss at "+str(t)+"/"+str(epochs)+": "+str(self.rnn_loss(X,y))
             for i in xrange(len(y)):
                 dU, dV, dW = self.rnn_bproptt(X[i],y[i])
                 self.U -= alpha*dU
@@ -108,7 +113,7 @@ class RNN:
 
 #train the model and print out a sentence
 (Xtrain, Ytrain, i2t, t2i) = createDataset(sys.argv[1])
-model = RNN(len(i2t),activ_size=100)
+model = RNN(len(i2t),activ_size=200)
 print "Vocab size: "+str(len(i2t))
-model.rnn_sgd(Xtrain,Ytrain)
+model.rnn_sgd(Xtrain,Ytrain,epochs=30)
 print gen_yak(t2i,i2t,model)
