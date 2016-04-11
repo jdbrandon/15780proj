@@ -35,7 +35,7 @@ function refreshPage(){
 
 function sendData(data){
   var req = new XMLHttpRequest()
-  var url = "http://localhost:9999"
+  var url = "http://192.168.2.9:9999"
 
   req.open("POST", url, true)
   console.log(data)
