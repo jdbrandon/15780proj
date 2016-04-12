@@ -9,12 +9,6 @@ def error(y_hat,y):
     return float(np.sum(np.argmax(y_hat,axis=1) != 
                         np.argmax(y,axis=1)))/y.shape[0]
 
-def gen_yak(t2i, i2t, model):
-    yak = [t2i[START_TOKEN]]
-    while yak[-1] != t2i[END_TOKEN]:
-        yak.append(np.argmax(model.rnn_fprop(yak)[0][-1]))
-    return " ".join(i2t[i] for i in yak[1:-1])
-
 softmax_loss = lambda yp,y : (np.log(np.sum(np.exp(yp))) - yp.dot(y), 
                                   np.exp(yp)/np.sum(np.exp(yp)) - y)
 f_tanh = lambda x : (np.tanh(x), 1./np.cosh(x)**2)

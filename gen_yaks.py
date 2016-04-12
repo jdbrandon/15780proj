@@ -2,6 +2,12 @@ import numpy as np
 import itertools,sys,codecs,locale
 from rnn import *
 
+def gen_most_likely_yak(t2i, i2t, model):
+    yak = [t2i[START_TOKEN]]
+    while yak[-1] != t2i[END_TOKEN]:
+        yak.append(np.argmax(model.rnn_fprop(yak)[0][-1]))
+    return " ".join(i2t[i] for i in yak[1:-1])
+
 def gen_yak(t2i, i2t, model):
     yak = [t2i[START_TOKEN]]
     while yak[-1] != t2i[END_TOKEN]:
