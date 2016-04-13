@@ -66,12 +66,14 @@ class RNN:
         d_output = output
         d_output[xrange(len(y)),y] -= 1
         for i in xrange(len(y)-1,-1,-1):
-            dV += np.outer(d_output[i], activ[i])
+            dV += np.outer(d_output[i], activ[i].transpose())
             d_t = self.V.transpose().dot(d_output[i]) * (1 - (activ[i]**2))
             for t in xrange(i,max(0, i-self.bptt_max)-1,-1):
                 dW += np.outer(d_t, activ[t-1])
                 dU[:,x[t]] += d_t
-                d_t = self.W.transpose().dot(d_t) * (1 - activ[t-1]**2)
+                a = self.W.transpose().dot(d_t)
+                b = activ[t-1]**2
+                d_t = a * (1 - b)
         return (dU,dV,dW)
     
     def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5):
