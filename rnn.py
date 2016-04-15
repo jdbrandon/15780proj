@@ -12,7 +12,7 @@ def error(y_hat,y):
 softmax_loss = lambda yp,y : (np.log(np.sum(np.exp(yp))) - yp.dot(y), 
                                   np.exp(yp)/np.sum(np.exp(yp)) - y)
 f_tanh = lambda x : (np.tanh(x), 1./np.cosh(x)**2)
-f_relu = lambda x : np.maximum(0,x)
+f_relu = lambda x : (x>=0).astype(np.float64) #np.maximum(0,x)
 f_lin = lambda x : (x, np.ones(x.shape))
 #http://stackoverflow.com/questions/34968722/softmax-function-python
 softmax = lambda x : np.divide(np.exp(x - np.max(x)),np.sum(np.exp(x - np.max(x)), axis=0))
@@ -28,7 +28,7 @@ class RNN:
             np.random.seed(0)
             self.U = 0.1*np.random.randn(self.activ_size,self.vocab_size)
             self.V = 0.1*np.random.randn(self.vocab_size,self.activ_size)
-            self.W = 0.1*np.random.randn(self.activ_size,self.activ_size)
+            self.W = np.identity(self.activ_size) #0.1*np.random.randn(self.activ_size,self.activ_size)
             #self.U = np.random.uniform(-np.sqrt(1.0/vocab_size),np.sqrt(1.0/vocab_size),(self.activ_size,self.vocab_size))
             #self.V = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.vocab_size,self.activ_size))
             #self.W = np.random.uniform(-np.sqrt(1.0/activ_size),np.sqrt(1.0/activ_size),(self.activ_size,self.activ_size))
@@ -46,7 +46,7 @@ class RNN:
         activ[-1] = np.zeros(self.activ_size)
         output = np.zeros((len(x),self.vocab_size))
         for t in xrange(len(x)):
-            activ[t] = np.tanh(self.U[:,x[t]] + self.W.dot(activ[t-1]))
+            activ[t] = f_relu(self.U[:,x[t]] + self.W.dot(activ[t-1]))
             output[t] = softmax(self.V.dot(activ[t]))
         return (output,activ)
     
@@ -68,10 +68,20 @@ class RNN:
         for i in xrange(len(y)-1,-1,-1):
             dV += np.outer(d_output[i], activ[i])
             d_t = self.V.transpose().dot(d_output[i]) * (1 - (activ[i]**2))
-            for t in xrange(i,max(0, i-self.bptt_max)-1,-1):
+            for t in xrange(i,max(-1, i-self.bptt_max)-1,-1):
                 dW += np.outer(d_t, activ[t-1])
                 dU[:,x[t]] += d_t
-                d_t = self.W.transpose().dot(d_t) * (1 - activ[t-1]**2)
+                d_t = self.W.transpose().dot(d_t) * (1 - (activ[t-1]**2))
+                normthresh = 1
+                '''if np.linalg.norm(d_t) > normthresh:
+                    d_t = (normthresh/np.linalg.norm(d_t))*d_t
+                if np.linalg.norm(dU) > normthresh:                   
+                    dU = (normthresh/np.linalg.norm(dU))*dU
+                if np.linalg.norm(dV) > normthresh:                   
+                    dV = (normthresh/np.linalg.norm(dV))*dV
+                if np.linalg.norm(dW) > normthresh:                   
+                    dW = (normthresh/np.linalg.norm(dW))*dW
+                '''#print "self.W.transpose().dot(d_t)",d_t, self.W, self.W.transpose().dot(d_t),activ[t-1]
         return (dU,dV,dW)
     
     def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5):
