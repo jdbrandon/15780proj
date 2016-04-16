@@ -68,7 +68,7 @@ class RNN:
         for i in xrange(len(y)-1,-1,-1):
             dV += np.outer(d_output[i], activ[i])
             d_t = self.V.transpose().dot(d_output[i]) * (1 - (activ[i]**2))
-            for t in xrange(i,max(-1, i-self.bptt_max)-1,-1):
+            for t in xrange(i,max(0, i-self.bptt_max)-1,-1):
                 dW += np.outer(d_t, activ[t-1])
                 dU[:,x[t]] += d_t
                 a = self.W.transpose().dot(d_t)
