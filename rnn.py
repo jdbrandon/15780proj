@@ -12,7 +12,12 @@ def error(y_hat,y):
 softmax_loss = lambda yp,y : (np.log(np.sum(np.exp(yp))) - yp.dot(y), 
                                   np.exp(yp)/np.sum(np.exp(yp)) - y)
 f_tanh = lambda x : (np.tanh(x), 1./np.cosh(x)**2)
-f_relu = lambda x : (x>=0).astype(np.float64) #np.maximum(0,x)
+#def f_relu(x):
+#     x = np.maximum(0,x/(np.linalg.norm(np.maximum(0,x))+1))
+#     return x
+f_relu = lambda x : np.maximum(0,x/(np.linalg.norm(np.maximum(0,x))+1))
+#f_relu = lambda x : np.maximum(0,x)
+
 f_lin = lambda x : (x, np.ones(x.shape))
 #http://stackoverflow.com/questions/34968722/softmax-function-python
 softmax = lambda x : np.divide(np.exp(x - np.max(x)),np.sum(np.exp(x - np.max(x)), axis=0))
@@ -66,14 +71,16 @@ class RNN:
         d_output = output
         d_output[xrange(len(y)),y] -= 1
         for i in xrange(len(y)-1,-1,-1):
-            dV += np.outer(d_output[i], activ[i])
-            d_t = self.V.transpose().dot(d_output[i]) * (1 - (activ[i]**2))
+            dV += np.outer(d_output[i], (activ[i]>0).astype(np.float64))
+            d_t = self.V.transpose().dot(d_output[i]) * (activ[i]>0).astype(np.float64)
             for t in xrange(i,max(-1, i-self.bptt_max)-1,-1):
+                #print d_t
                 dW += np.outer(d_t, activ[t-1])
                 dU[:,x[t]] += d_t
-                d_t = self.W.transpose().dot(d_t) * (1 - (activ[t-1]**2))
-                normthresh = 1
-                '''if np.linalg.norm(d_t) > normthresh:
+                d_t = self.W.transpose().dot(np.multiply(d_t,(activ[t-1]>0).astype(np.float64)))
+                d_t /= (np.linalg.norm(d_t)+1)
+                '''normthresh = 1
+                if np.linalg.norm(d_t) > normthresh:
                     d_t = (normthresh/np.linalg.norm(d_t))*d_t
                 if np.linalg.norm(dU) > normthresh:                   
                     dU = (normthresh/np.linalg.norm(dU))*dU
