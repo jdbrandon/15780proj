@@ -71,14 +71,16 @@ class RNN:
         d_output = output
         d_output[xrange(len(y)),y] -= 1
         for i in xrange(len(y)-1,-1,-1):
-            dV += np.outer(d_output[i], (activ[i]>0).astype(np.float64))
-            d_t = self.V.transpose().dot(d_output[i]) * (activ[i]>0).astype(np.float64)
+            dV += np.outer(d_output[i], (2-(activ[i]>0).astype(np.float64)/(np.linalg.norm((activ[i]>0).astype(np.float64))+1)))
+            d_t = self.V.transpose().dot(d_output[i]) * (2-(activ[i]>0).astype(np.float64)/(np.linalg.norm((activ[i]>0).astype(np.float64))+1))
             for t in xrange(i,max(-1, i-self.bptt_max)-1,-1):
                 #print d_t
+                normthresh = 10000
                 dW += np.outer(d_t, activ[t-1])
                 dU[:,x[t]] += d_t
-                d_t = self.W.transpose().dot(np.multiply(d_t,(activ[t-1]>0).astype(np.float64)))
-                d_t /= (np.linalg.norm(d_t)+1)
+                d_t = self.W.transpose().dot(np.multiply(d_t,2-((activ[t-1]>0).astype(np.float64)/(np.linalg.norm((activ[t-1]>0).astype(np.float64))+1))))
+                if np.linalg.norm(d_t) > normthresh:
+                    d_t *= normthresh/(np.linalg.norm(d_t)+1)
                 '''normthresh = 1
                 if np.linalg.norm(d_t) > normthresh:
                     d_t = (normthresh/np.linalg.norm(d_t))*d_t
