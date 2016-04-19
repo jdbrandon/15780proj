@@ -77,9 +77,15 @@ class RNN:
         return (dU,dV,dW)
     
     def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5):
+        lastloss = self.rnn_loss(X,y)+1
         for t in xrange(epochs):
             if t % loss_epoch == 0:
-                print "Loss at "+str(t)+"/"+str(epochs)+": "+str(self.rnn_loss(X,y))
+                currloss = self.rnn_loss(X,y)
+                print "Loss at "+str(t)+"/"+str(epochs)+": "+str(currloss)
+                if currloss > lastloss:
+                    alpha *= 0.5
+                    print "Adjusting learning rate to "+str(alpha)
+                lastloss = currloss
             for i in xrange(len(y)):
                 dU, dV, dW = self.rnn_bproptt(X[i],y[i])
                 self.U -= alpha*dU
