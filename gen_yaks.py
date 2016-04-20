@@ -11,7 +11,7 @@ def gen_most_likely_yak(t2i, i2t, model):
 def gen_yak(t2i, i2t, model):
     yak = [t2i[START_TOKEN]]
     while yak[-1] != t2i[END_TOKEN]:
-        token_p = model.rnn_fprop(yak)[0][-1]
+        token_p = model.rnn_fprop(yak)[0][-1] #This is not correct for rnn. still gotta figure that out
         nexttoken = t2i[UNKNOWN_TOKEN]
         while nexttoken == t2i[UNKNOWN_TOKEN]:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
