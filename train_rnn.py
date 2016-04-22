@@ -44,7 +44,7 @@ parser.add_option("-e","--numepochs",type="int",dest="numepochs", help="number o
 parser.add_option("-i","--epochinterval",type="int",dest="epochinterval", help="interval of epochs to evaluate learning rate and print on", default=5)
 parser.add_option("-v","--vocabsize",type="int",dest="vocabsize", help="max size of vocab to train with",default=3000)
 parser.add_option("-b","--bpttmax",type="int",dest="bpttmax", help="max number of times to unroll loop",default=4)
-parser.add_option("-a","--alpha",type="float",dest="alpha", help="initial learning rate for SGD",default=0.01)
+parser.add_option("-a","--alpha",type="float",dest="alpha", help="initial learning rate for SGD",default=0.002)
 parser.add_option("-d","--decay",type="float",dest="decay", help="decay rate for caching gradients for SGD",default=0.9)
 (options, args) = parser.parse_args()
 if options.trainingfile == None:

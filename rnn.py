@@ -152,16 +152,26 @@ class RNN:
     
     def rnn_sgd(self, X, y, epochs=20, alpha=0.005, loss_epoch=5, decay=0.9):
         lastloss = self.rnn_loss(X,y)+1
+        start_time = time.time()
+        start_interval_time = time.time()
         for t in xrange(epochs):
             if t % loss_epoch == 0:
                 currloss = self.rnn_loss(X,y)
-                print "Loss at "+str(t)+"/"+str(epochs)+": "+str(currloss)
+                interval_time = time.time()-start_interval_time
+                start_interval_time = time.time()
+                time_so_far = time.time()-start_time
+                adjstring = ""
                 if currloss > lastloss:
                     alpha *= 0.5
-                    print "Adjusting learning rate to "+str(alpha)
+                    adjstring = " | Adj learn to "+str(alpha)
+                ETR = (interval_time*((epochs-t)/loss_epoch))
+                print "%3.0f/%d | L:%7.4f | T:%3.0fh%2.0fm%2.0fs | ETR:%3.0fh%2.0fm%2.0fs"%(t,epochs,currloss,np.floor(time_so_far/3600),np.floor((time_so_far%3600)/60),(time_so_far%60),np.floor(ETR/3600),np.floor((ETR%3600)/60),(ETR%60))+adjstring
                 lastloss = currloss
             for i in xrange(len(y)):
                 self.sgd_step(X[i],y[i],alpha,decay)
         currloss = self.rnn_loss(X,y)
-        print "Loss at "+str(t)+"/"+str(epochs)+": "+str(currloss)
+        interval_time = time.time()-interval_time
+        time_so_far = time.time()-start_time
+        ETR = 0
+        print "%3.0f/%d | L:%7.4f | T:%3.0fh%2.0fm%2.0fs | ETR:%3.0fh%2.0fm%2.0fs"%(epochs,epochs,currloss,np.floor(time_so_far/3600),np.floor((time_so_far%3600)/60),(time_so_far%60),np.floor(ETR/3600),np.floor((ETR%3600)/60),(ETR%60))
         return (self.E.get_value(),self.U.get_value(),self.V.get_value(),self.W.get_value(),self.b.get_value(),self.c.get_value())
