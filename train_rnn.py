@@ -4,6 +4,10 @@ from nltk.tokenize import TweetTokenizer
 from rnn import *
 from optparse import OptionParser
 
+START_TOKEN = "START_TOKEN"
+END_TOKEN = "END_TOKEN"
+UNKNOWN_TOKEN = "UNKNOWN_TOKEN"
+
 def createDataset(filename, MAX_VOCAB_SIZE):
     yaks = []
     tokenizer = TweetTokenizer()
