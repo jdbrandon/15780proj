@@ -52,5 +52,5 @@ if options.trainingfile == None:
 (Xtrain, Ytrain, i2t, t2i) = createDataset(options.trainingfile, options.vocabsize)
 model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
 print "Vocab size: "+str(len(i2t))
-U,V,W = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha)
-np.savez_compressed(options.modeloutput,U=U,V=V,W=W,i2t=i2t,t2i=t2i)
+(E,U,V,W,b,c) = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha)
+np.savez_compressed(options.modeloutput,E=E,U=U,V=V,W=W,b=b,c=c,i2t=i2t,t2i=t2i)

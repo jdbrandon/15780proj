@@ -11,7 +11,7 @@ def gen_most_likely_yak(t2i, i2t, model):
 def gen_yak(t2i, i2t, model):
     yak = [t2i[START_TOKEN]]
     while yak[-1] != t2i[END_TOKEN]:
-        token_p = model.rnn_fprop(yak)[0][-1]
+        token_p = model.predict(yak)[-1]
         nexttoken = t2i[UNKNOWN_TOKEN]
         while nexttoken == t2i[UNKNOWN_TOKEN]:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
@@ -23,7 +23,7 @@ if len(sys.argv) < 2 or len(sys.argv) > 3:
     print "usage: gen_yaks.py <model_file> [num_yaks]"
     quit()
 weights = np.load(sys.argv[1])
-model = RNN(U=weights["U"], V=weights["V"], W=weights["W"])
+model = RNN(U=weights["U"], V=weights["V"], W=weights["W"], E=weights["E"], b=weights["b"], c=weights["c"])
 #sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 if len(sys.argv) == 3:
     for i in xrange(int(sys.argv[2])):
