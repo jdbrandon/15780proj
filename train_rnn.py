@@ -45,6 +45,7 @@ parser.add_option("-i","--epochinterval",type="int",dest="epochinterval", help="
 parser.add_option("-v","--vocabsize",type="int",dest="vocabsize", help="max size of vocab to train with",default=3000)
 parser.add_option("-b","--bpttmax",type="int",dest="bpttmax", help="max number of times to unroll loop",default=4)
 parser.add_option("-a","--alpha",type="float",dest="alpha", help="initial learning rate for SGD",default=0.01)
+parser.add_option("-d","--decay",type="float",dest="decay", help="decay rate for caching gradients for SGD",default=0.9)
 (options, args) = parser.parse_args()
 if options.trainingfile == None:
     parser.error("must specify training file")
@@ -52,5 +53,5 @@ if options.trainingfile == None:
 (Xtrain, Ytrain, i2t, t2i) = createDataset(options.trainingfile, options.vocabsize)
 model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
 print "Vocab size: "+str(len(i2t))
-(E,U,V,W,b,c) = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha)
+(E,U,V,W,b,c) = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha,decay=options.decay)
 np.savez_compressed(options.modeloutput,E=E,U=U,V=V,W=W,b=b,c=c,i2t=i2t,t2i=t2i)
