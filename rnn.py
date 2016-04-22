@@ -7,7 +7,7 @@ import time
 import operator
 
 START_TOKEN = "START_TOKEN"
-END_TOKEN = "END_TOKEN"
+END_TOKENS = ["END_TOKEN_1","END_TOKEN_2","END_TOKEN_3","END_TOKEN_4","END_TOKEN_5"]
 UNKNOWN_TOKEN = "UNKNOWN_TOKEN"
 
 def error(y_hat,y):
@@ -150,7 +150,7 @@ class RNN:
         loss /= totalwords
         return loss
     
-    def rnn_sgd(self, X, y, epochs=20, alpha=0.005, loss_epoch=5, decay=0.9):
+    def rnn_sgd(self, X, y, epochs=20, alpha=0.001, loss_epoch=5, decay=0.9):
         lastloss = self.rnn_loss(X,y)+1
         start_time = time.time()
         start_interval_time = time.time()
@@ -161,9 +161,9 @@ class RNN:
                 start_interval_time = time.time()
                 time_so_far = time.time()-start_time
                 adjstring = ""
-                if currloss > lastloss:
-                    alpha *= 0.5
-                    adjstring = " | Adj learn to "+str(alpha)
+                #if currloss > lastloss:
+                #    alpha *= 0.5
+                #    adjstring = " | Adj learn to "+str(alpha)
                 ETR = (interval_time*((epochs-t)/loss_epoch))
                 print "%3.0f/%d | L:%7.4f | T:%3.0fh%2.0fm%2.0fs | ETR:%3.0fh%2.0fm%2.0fs"%(t,epochs,currloss,np.floor(time_so_far/3600),np.floor((time_so_far%3600)/60),(time_so_far%60),np.floor(ETR/3600),np.floor((ETR%3600)/60),(ETR%60))+adjstring
                 lastloss = currloss
