@@ -18,7 +18,16 @@ def createDataset(filename, MAX_VOCAB_SIZE):
             ids.add(id)
             tokens = [START_TOKEN]
             tokens.extend(tokenizer.tokenize(sentence.lower()))
-            tokens.append(END_TOKEN)
+            if int(stuff[2]) < 0:
+                tokens.append(END_TOKENS[0])
+            elif int(stuff[2]) < 10:
+                tokens.append(END_TOKENS[1])
+            elif int(stuff[2]) < 40:
+                tokens.append(END_TOKENS[2])
+            elif int(stuff[2]) < 100:
+                tokens.append(END_TOKENS[3])
+            else:
+                tokens.append(END_TOKENS[4])
             yaks.append(tokens)
     token_frequency = nltk.FreqDist(itertools.chain(*yaks))
     vocab = token_frequency.most_common(MAX_VOCAB_SIZE-1)
