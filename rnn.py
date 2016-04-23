@@ -161,9 +161,9 @@ class RNN:
                 start_interval_time = time.time()
                 time_so_far = time.time()-start_time
                 adjstring = ""
-                #if currloss > lastloss:
-                #    alpha *= 0.5
-                #    adjstring = " | Adj learn to "+str(alpha)
+                if currloss > lastloss:
+                    alpha *= 0.5
+                    adjstring = " | Adj learn to "+str(alpha)
                 ETR = (interval_time*((epochs-t)/loss_epoch))
                 print "%3.0f/%d | L:%7.4f | T:%3.0fh%2.0fm%2.0fs | ETR:%3.0fh%2.0fm%2.0fs"%(t,epochs,currloss,np.floor(time_so_far/3600),np.floor((time_so_far%3600)/60),(time_so_far%60),np.floor(ETR/3600),np.floor((ETR%3600)/60),(ETR%60))+adjstring
                 lastloss = currloss
