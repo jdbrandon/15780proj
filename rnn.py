@@ -1,10 +1,8 @@
 import numpy as np
-import itertools,sys
+import itertools,sys,time,os,operator
 import theano as theano
 import theano.tensor as T
 from theano.gradient import grad_clip
-import time
-import operator
 
 START_TOKEN = "START_TOKEN"
 END_TOKENS = ["END_TOKEN_1","END_TOKEN_2","END_TOKEN_3","END_TOKEN_4","END_TOKEN_5"]
@@ -150,7 +148,7 @@ class RNN:
         loss /= totalwords
         return loss
     
-    def rnn_sgd(self, X, y, epochs=20, alpha=0.001, loss_epoch=5, decay=0.9):
+    def rnn_sgd(self, X, y, epochs=20, alpha=0.001, loss_epoch=5, decay=0.9,i2t=None,t2i=None):
         lastloss = self.rnn_loss(X,y)+1
         start_time = time.time()
         start_interval_time = time.time()
@@ -161,6 +159,11 @@ class RNN:
                 start_interval_time = time.time()
                 time_so_far = time.time()-start_time
                 adjstring = ""
+                
+                if(i2t is not None and t2i is not None):
+                    if not os.path.exists("work_models/"):
+                        os.makedirs("work_models/")
+                    np.savez_compressed("work_models/work_model_"+str(t)+".npz",E=self.E.get_value(),U=self.U.get_value(),V=self.V.get_value(),W=self.W.get_value(),b=self.b.get_value(),c=self.c.get_value(),i2t=i2t,t2i=t2i)
                 if currloss > lastloss:
                     alpha *= 0.5
                     adjstring = " | Adj learn to "+str(alpha)
