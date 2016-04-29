@@ -13,6 +13,7 @@ def gen_yak(t2i, i2t, model):
     END_TOKEN_IDS = [t2i[END_TOKEN] for END_TOKEN in END_TOKENS]
     while yak[-1] not in END_TOKEN_IDS:
         token_p = model.predict(yak)[-1]
+        token_p[token_p<10**-8] = 0
         nexttoken = t2i[UNKNOWN_TOKEN]
         while nexttoken == t2i[UNKNOWN_TOKEN]:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
