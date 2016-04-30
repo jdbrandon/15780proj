@@ -4,7 +4,7 @@ from nltk.tokenize import TweetTokenizer
 from rnn import *
 from optparse import OptionParser
 
-def createDataset(filename, MAX_VOCAB_SIZE):
+def createDataset(filename, MAX_VOCAB_SIZE,pos_bool):
     yaks = []
     tokenizer = TweetTokenizer()
     ids = set()
@@ -17,7 +17,10 @@ def createDataset(filename, MAX_VOCAB_SIZE):
             sentence = stuff[3]
             ids.add(id)
             tokens = [START_TOKEN]
-            tokens.extend(tokenizer.tokenize(sentence.lower()))
+            sent_tokens = tokenizer.tokenize(sentence.lower())
+            if(pos_bool):
+                sent_tokens = [pos for (_,pos) in nltk.pos_tag(sent_tokens)]
+            tokens.extend(sent_tokens)
             if int(stuff[2]) < 0:
                 tokens.append(END_TOKENS[0])
             elif int(stuff[2]) < 10:
@@ -30,6 +33,7 @@ def createDataset(filename, MAX_VOCAB_SIZE):
                 tokens.append(END_TOKENS[4])
             yaks.append(tokens)
     token_frequency = nltk.FreqDist(itertools.chain(*yaks))
+    print "Original vocab size: "+str(len(token_frequency))
     vocab = token_frequency.most_common(MAX_VOCAB_SIZE-1)
     i2t = [token[0] for token in vocab]
     i2t.append(UNKNOWN_TOKEN)
@@ -55,12 +59,13 @@ parser.add_option("-v","--vocabsize",type="int",dest="vocabsize", help="max size
 parser.add_option("-b","--bpttmax",type="int",dest="bpttmax", help="max number of times to unroll loop",default=-1)
 parser.add_option("-a","--alpha",type="float",dest="alpha", help="initial learning rate for SGD",default=0.001)
 parser.add_option("-d","--decay",type="float",dest="decay", help="decay rate for caching gradients for SGD",default=0.9)
+parser.add_option("-p","--pos",action="store_true",dest="pos_bool", help="create Parts Of Speech predicting model",default=False)
 (options, args) = parser.parse_args()
 if options.trainingfile == None:
     parser.error("must specify training file")
 
-(Xtrain, Ytrain, i2t, t2i) = createDataset(options.trainingfile, options.vocabsize)
+(Xtrain, Ytrain, i2t, t2i) = createDataset(options.trainingfile, options.vocabsize,options.pos_bool)
 model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
-print "Vocab size: "+str(len(i2t))
+print "Training vocab size: "+str(len(i2t))
 (E,U,V,W,b,c) = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha,decay=options.decay,i2t=i2t,t2i=t2i)
 np.savez_compressed(options.modeloutput,E=E,U=U,V=V,W=W,b=b,c=c,i2t=i2t,t2i=t2i)
