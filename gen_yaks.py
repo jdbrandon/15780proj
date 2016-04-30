@@ -1,6 +1,7 @@
 import numpy as np
 import itertools,sys,codecs,locale
 from rnn import *
+from optparse import OptionParser
 
 def gen_most_likely_yak(t2i, i2t, model):
     yak = [t2i[START_TOKEN]]
@@ -18,20 +19,53 @@ def gen_yak(t2i, i2t, model):
         while nexttoken == t2i[UNKNOWN_TOKEN]:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
         yak.append(nexttoken)
-    return " ".join(i2t[i].encode(locale.getpreferredencoding(),'xmlcharrefreplace') for i in yak[1:-1]),END_TOKEN_IDS.index(yak[-1])
+    return " ".join(i2t[i].split(DELIMITER)[0].encode(locale.getpreferredencoding(),'xmlcharrefreplace') for i in yak[1:-1]),END_TOKEN_IDS.index(yak[-1])
+
+    
+def gen_yak_pos(t2i, i2t, post2i, posi2t, model, posmodel):
+    yak = [t2i[START_TOKEN]]
+    posyak = [post2i[START_TOKEN]]
+    END_TOKEN_IDS = [t2i[END_TOKEN] for END_TOKEN in END_TOKENS]
+    POS_END_TOKEN_IDS = [post2i[END_TOKEN] for END_TOKEN in END_TOKENS]
+    while posyak[-1] not in POS_END_TOKEN_IDS:
+        pos_token_p = posmodel.predict(posyak)[-1]
+        token_p = model.predict(yak)[-1]
+        pos_token_p[pos_token_p<10**-8] = 0
+        token_p[token_p<10**-8] = 0
+        postoken = np.argmax(np.random.multinomial(1,pos_token_p))
+        if postoken in POS_END_TOKEN_IDS:
+            posyak.append(postoken)
+            continue
+        posstr = posi2t[postoken]
+        nexttoken = t2i[UNKNOWN_TOKEN]
+        while nexttoken == t2i[UNKNOWN_TOKEN] or nexttoken in END_TOKEN_IDS or len(i2t[nexttoken].split(DELIMITER))< 2 or i2t[nexttoken].split(DELIMITER)[1] != posstr:
+            nexttoken = np.argmax(np.random.multinomial(1,token_p))
+        posyak.append(postoken)
+        yak.append(nexttoken)
+    return " ".join(i2t[i].split(DELIMITER)[0].encode(locale.getpreferredencoding(),'xmlcharrefreplace') for i in yak[1:]),POS_END_TOKEN_IDS.index(posyak[-1])
 
 #train the model and print out a sentence
-if len(sys.argv) < 2 or len(sys.argv) > 3:
-    print "usage: gen_yaks.py <model_file> [num_yaks]"
-    quit()
-weights = np.load(sys.argv[1])
+parser = OptionParser()
+parser.add_option("-m","--wordmodel",dest="wordmodelfile", help="trained word model")
+parser.add_option("-p","--posmodel",dest="posmodelfile", help="trained pos model", default=None)
+parser.add_option("-n","--numyaks",type="int",dest="num_yaks", help="number of yaks to generate", default=5)
+(options, args) = parser.parse_args()
+if options.wordmodelfile == None:
+    parser.error("must specify word model file")
+
+weights = np.load(options.wordmodelfile)
 model = RNN(U=weights["U"], V=weights["V"], W=weights["W"], E=weights["E"], b=weights["b"], c=weights["c"])
-#sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
-if len(sys.argv) == 3:
-    for i in xrange(int(sys.argv[2])):
+
+posweights = None
+posmodel = None
+if options.posmodelfile is not None:
+    posweights = np.load(options.posmodelfile)
+    posmodel = RNN(U=posweights["U"], V=posweights["V"], W=posweights["W"], E=posweights["E"], b=posweights["b"], c=posweights["c"])
+
+for i in xrange(options.num_yaks):
+    yak,grade = "",-1
+    if posmodel is None:
         yak,grade = gen_yak(weights["t2i"][()],weights["i2t"],model)
-        print str(grade)+" -- "+yak+"\n----------------"
-else:
-    for i in xrange(5):
-        yak,grade = gen_yak(weights["t2i"][()],weights["i2t"],model)
-        print str(grade)+" -- "+yak+"\n----------------"
+    else:
+        yak,grade = gen_yak_pos(weights["t2i"][()],weights["i2t"],posweights["t2i"][()],posweights["i2t"],model,posmodel)
+    print str(grade)+" -- "+yak+"\n----------------"

@@ -17,9 +17,11 @@ def createDataset(filename, MAX_VOCAB_SIZE,pos_bool):
             sentence = stuff[3]
             ids.add(id)
             tokens = [START_TOKEN]
-            sent_tokens = tokenizer.tokenize(sentence.lower())
+            sent_tokens = nltk.pos_tag(tokenizer.tokenize(sentence.lower()))
             if(pos_bool):
-                sent_tokens = [pos for (_,pos) in nltk.pos_tag(sent_tokens)]
+                sent_tokens = [pos for (_,pos) in sent_tokens]
+            else:
+                sent_tokens = [word+DELIMITER+pos for (word,pos) in sent_tokens]
             tokens.extend(sent_tokens)
             if int(stuff[2]) < 0:
                 tokens.append(END_TOKENS[0])

@@ -7,6 +7,7 @@ from theano.gradient import grad_clip
 START_TOKEN = "START_TOKEN"
 END_TOKENS = ["END_TOKEN_1","END_TOKEN_2","END_TOKEN_3","END_TOKEN_4","END_TOKEN_5"]
 UNKNOWN_TOKEN = "UNKNOWN_TOKEN"
+DELIMITER = "|||"
 
 def error(y_hat,y):
     return float(np.sum(np.argmax(y_hat,axis=1) != 
