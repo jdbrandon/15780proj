@@ -38,8 +38,14 @@ def gen_yak_pos(t2i, i2t, post2i, posi2t, model, posmodel):
             continue
         posstr = posi2t[postoken]
         nexttoken = t2i[UNKNOWN_TOKEN]
-        while nexttoken == t2i[UNKNOWN_TOKEN] or nexttoken in END_TOKEN_IDS or len(i2t[nexttoken].split(DELIMITER))< 2 or i2t[nexttoken].split(DELIMITER)[1] != posstr:
+        numtries = 0
+        while (nexttoken == t2i[UNKNOWN_TOKEN] or nexttoken in END_TOKEN_IDS or len(i2t[nexttoken].split(DELIMITER))< 2 or i2t[nexttoken].split(DELIMITER)[1] != posstr) and numtries < 1000:
             nexttoken = np.argmax(np.random.multinomial(1,token_p))
+            numtries+=1
+        if numtries == 1000:
+            yak = [t2i[START_TOKEN]]
+            posyak = [post2i[START_TOKEN]]
+            continue
         posyak.append(postoken)
         yak.append(nexttoken)
     return " ".join(i2t[i].split(DELIMITER)[0].encode(locale.getpreferredencoding(),'xmlcharrefreplace') for i in yak[1:]),POS_END_TOKEN_IDS.index(posyak[-1])
