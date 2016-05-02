@@ -1,5 +1,5 @@
 import numpy as np
-import itertools,sys,time
+import itertools,sys,time,os
 
 START_TOKEN = "START_TOKEN"
 END_TOKENS = ["END_TOKEN_1","END_TOKEN_2","END_TOKEN_3","END_TOKEN_4","END_TOKEN_5"]
@@ -76,7 +76,7 @@ class RNN:
                 d_t = a * (1 - b)
         return (dU,dV,dW)
 
-    def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5):
+    def rnn_sgd(self, X, y, epochs=20, alpha=0.01, loss_epoch=5,i2t=None,t2i=None):
         lastloss = self.rnn_loss(X,y)+1
         start_time = time.time()
         start_interval_time = time.time()
@@ -93,6 +93,10 @@ class RNN:
                 ETR = (interval_time*((epochs-t)/loss_epoch))
                 print "%3.0f/%d | L:%7.4f | T:%3.0fh%2.0fm%2.0fs | ETR:%3.0fh%2.0fm%2.0fs"%(t,epochs,currloss,np.floor(time_so_far/3600),np.floor((time_so_far%3600)/60),(time_so_far%60),np.floor(ETR/3600),np.floor((ETR%3600)/60),(ETR%60))+adjstring
                 lastloss = currloss
+                if not os.path.exists("work_models/"):
+                    os.makedirs("work_models/")
+                if i2t is not None and t2i is not None:
+                    np.savez_compressed("work_models/work_model_"+str(t),U=self.U,V=self.V,W=self.W,i2t=i2t,t2i=t2i)
             for i in xrange(len(y)):
                 dU, dV, dW = self.rnn_bproptt(X[i],y[i])
                 self.U -= alpha*dU
