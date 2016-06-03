@@ -48,6 +48,7 @@ def createDataset(filename, MAX_VOCAB_SIZE):
 parser = OptionParser()
 parser.add_option("-t","--trainingfile",dest="trainingfile", help="log file to train from")
 parser.add_option("-o","--modeloutput",dest="modeloutput", help="file to output trained model to", default="yakmodel")
+parser.add_option("-p","--modelprior",dest="modelprior", help="initial values to start training on", default=None)
 parser.add_option("-z","--hiddensize",type="int",dest="activ_size", help="size of hidden layer", default=50)
 parser.add_option("-e","--numepochs",type="int",dest="numepochs", help="number of epochs to train", default=50)
 parser.add_option("-i","--epochinterval",type="int",dest="epochinterval", help="interval of epochs to evaluate learning rate and print on", default=5)
@@ -59,7 +60,12 @@ if options.trainingfile == None:
     parser.error("must specify training file")
 
 (Xtrain, Ytrain, i2t, t2i) = createDataset(options.trainingfile, options.vocabsize)
-model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
+model = None
+if options.modelprior is not None:
+    weights = np.load(options.modelprior)
+    model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax, U=weights["U"], V=weights["V"], W=weights["W"])
+else:
+    model = RNN(vocab_size=len(i2t),activ_size=options.activ_size, bptt_max = options.bpttmax)
 print "Vocab size: "+str(len(i2t))
 U,V,W = model.rnn_sgd(Xtrain,Ytrain,epochs=options.numepochs,loss_epoch=options.epochinterval,alpha=options.alpha,i2t=i2t,t2i=t2i)
 np.savez_compressed(options.modeloutput,U=U,V=V,W=W,i2t=i2t,t2i=t2i)
